@@ -1,0 +1,11 @@
+MAIN: DO;
+
+$INCLUDE(inc/const.inc)
+$INCLUDE(inc/conio.inc)
+$INCLUDE(inc/syscon.inc)
+
+    MONITOR_MAIN: PROCEDURE PUBLIC;
+        CALL CONINIT;
+        CALL PRINTLN(.('Hello, World!', 0));
+    END;
+END MAIN;

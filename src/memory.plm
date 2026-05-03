@@ -1,0 +1,128 @@
+MEMORY: DO;
+
+$INCLUDE (inc/const.inc)
+
+    MEMCMP: PROCEDURE(A, B, LEN) BYTE PUBLIC;
+        DECLARE (A, B) ADDRESS;
+        DECLARE CA BASED A BYTE;
+        DECLARE CB BASED B BYTE;
+        DECLARE (LEN, I) BYTE;
+
+        IF LEN = 0 THEN RETURN TRUE;
+
+        DO I = 1 TO LEN;
+            IF CA <> CB THEN DO;
+                RETURN FALSE;
+            END;
+            
+            A = A + 1;
+            B = B + 1;
+        END;
+
+        RETURN TRUE;
+    END MEMCMP;
+    
+    STRLEN: PROCEDURE(STR) BYTE PUBLIC;
+        DECLARE STR ADDRESS;
+        
+        DECLARE C BASED STR BYTE;
+        DECLARE I BYTE;
+
+        I = 0;
+
+        DO WHILE C <> 0;
+            I = I + 1;
+            STR = STR + 1;
+        END;    
+
+        RETURN I;
+    END STRLEN;
+
+    STRCMP: PROCEDURE(A, B) BOOL PUBLIC;
+        DECLARE (A, B) ADDRESS;
+        DECLARE CA BASED A BYTE;
+        DECLARE CB BASED B BYTE;
+
+        DO WHILE (CA <> 0) AND (CB <> 0);
+            IF CA <> CB THEN DO;
+                RETURN FALSE;
+            END;
+            
+            A = A + 1;
+            B = B + 1;
+        END;
+
+        IF (CA <> 0) OR (CB <> 0) THEN RETURN FALSE;
+        RETURN TRUE;
+    END STRCMP;
+
+    MEMCPY: PROCEDURE(DST, SRC, N) PUBLIC;
+        DECLARE (DST, SRC) ADDRESS;
+
+        DECLARE DB BASED DST BYTE;
+        DECLARE SB BASED SRC BYTE;
+        DECLARE N BYTE;
+
+        DO WHILE N > 0;
+            DB = SB;
+            DST = DST + 1;
+            SRC = SRC + 1;
+            N = N - 1;
+        END;
+    END MEMCPY;
+
+    ATOI: PROCEDURE (STR) WORD PUBLIC;
+        DECLARE STR ADDRESS;
+        DECLARE CH BASED STR BYTE;
+        DECLARE NUM WORD;
+
+        NUM = 0;
+
+        DO WHILE CH <> 0;
+            NUM = (NUM * 10) + (CH - '0');
+            STR = STR + 1;
+        END;
+
+        RETURN NUM;
+    END ATOI;
+
+    DECLARE STRTOK_SAVED_PTR ADDRESS;
+
+    STRTOK: PROCEDURE (STR, DELIM) ADDRESS PUBLIC;
+        DECLARE STR ADDRESS;
+        DECLARE DELIM BYTE; 
+
+        DECLARE (START, P) ADDRESS;
+        DECLARE C BASED P BYTE;
+
+        IF STR <> 0 THEN STRTOK_SAVED_PTR = STR;        /* update saved pointer */
+        IF STRTOK_SAVED_PTR = NULL THEN RETURN NULL;    /* we're out of string */
+
+        P = STRTOK_SAVED_PTR;
+        DO WHILE (C = DELIM) AND (C <> NULL);
+            P = P + 1; /* skip leading delimiters */
+        END;
+
+        IF C = 0 THEN DO; /* reached the end of string while skipping DELIMs */
+            STRTOK_SAVED_PTR = NULL;
+            RETURN NULL;
+        END;
+
+        START = P; /* found new word */
+
+        DO WHILE (C <> DELIM) AND (C <> NULL);
+            P = P + 1;
+        END;
+
+        IF C = DELIM THEN DO; /* hit the delimiter */
+            C = 0;
+            STRTOK_SAVED_PTR = P + 1;
+        END;
+        ELSE DO; /* hit the NULL terminator */
+            STRTOK_SAVED_PTR = NULL;
+        END;
+
+        RETURN START;
+    END STRTOK;
+
+END MEMORY;

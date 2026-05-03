@@ -1,0 +1,72 @@
+NAME BIOS
+
+EXTRN MONITOR_MAIN
+
+ROMSTART    EQU 0000H
+RAMSTART    EQU 2000H
+OSRAMSTART  EQU 3E00H   ; Grows up. Can be used for any memory needs by the BIOS. Should not ever be touched by user applications.
+RAMEND      EQU 3FFFH
+
+; RST JUMP TABLE
+
+    ORG 000H
+RST0:
+    JMP START
+    ORG 008H
+RST1:
+    ORG 010H
+RST2:
+    ORG 018H
+RST3:
+    ORG 020H
+RST4:
+    ORG 025H
+TRAP:
+    ORG 028H
+RST5:
+    ORG 02CH
+RST55:
+    ORG 030H
+RST6:
+    ORG 034H
+RST65:
+    ORG 038H
+RST7:
+    JMP CRASH
+
+; SYSTEM API TABLE
+
+SYSFN MACRO FNAME
+    EXTRN FNAME
+    JMP FNAME
+ENDM
+
+    ORG 0100H
+$INCLUDE (asm/api.asm)
+
+; CODE
+START:
+    LXI SP, RAMEND + 1
+
+    LXI H, OSRAMSTART
+    XRA A
+CLEAR_RAM:
+    MOV M, A
+    INX H
+    MOV A, H
+    CPI HIGH RAMEND
+    JNZ CLEAR_RAM
+
+    CALL MONITOR_MAIN
+
+    RST 0
+
+CRASH:
+    LXI B, CRASH_MSG
+    CALL PRINTLN
+    RST 0 ; TODO
+
+; DATA
+CRASH_MSG: DB 13,10,'CRASHED! SOFT-RESETTING...',13,10,0
+
+END

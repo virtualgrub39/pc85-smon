@@ -1,0 +1,7 @@
+.venv
+obj
+out
+*.hex
+*.lst
+*.map
+*.obj

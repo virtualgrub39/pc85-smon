@@ -1,0 +1,159 @@
+CONIO: DO;
+
+$INCLUDE (inc/syscon.inc)
+$INCLUDE (inc/const.inc)
+
+    PRINT: PROCEDURE(PTR) PUBLIC;
+        DECLARE PTR WORD;
+        DECLARE CH BASED PTR BYTE;
+        DO WHILE CH <> 0;
+            CALL CONOUT(CH);
+            PTR = PTR + 1;
+        END;
+    END PRINT;
+
+    PRINT_CRLF: PROCEDURE PUBLIC;
+        CALL CONOUT(CR);
+        CALL CONOUT(LF);
+    END PRINT_CRLF;
+
+    PRINTLN: PROCEDURE(PTR) PUBLIC;
+        DECLARE PTR WORD;
+        CALL PRINT(PTR);
+        CALL PRINT_CRLF;
+    END PRINTLN;
+
+    PRINT_DEC: PROCEDURE(NUM) PUBLIC;
+        DECLARE NUM WORD;
+        DECLARE (I, DONE) BYTE;
+        DECLARE DIGITS(8) BYTE;
+
+        I = 0;
+        DONE = FALSE;
+
+        DO WHILE DONE = FALSE;
+            DIGITS(I) = (NUM MOD 10) + '0';
+            NUM = NUM / 10;
+            I = I + 1;
+
+            IF NUM = 0 THEN DONE = TRUE;
+        END;
+
+        DO WHILE I > 0;
+            I = I - 1;
+            CALL CONOUT(DIGITS(I));
+        END;
+    END PRINT_DEC;
+
+    PRINT_NIBBLE: PROCEDURE(N) PUBLIC;
+        DECLARE N BYTE;
+        N = N AND 0FH; 
+        
+        IF N <= 9 THEN
+            CALL CONOUT(N + '0');
+        ELSE
+            CALL CONOUT(N - 10 + 'A');
+    END PRINT_NIBBLE;
+
+    PRINT_HEX8: PROCEDURE(NUM) PUBLIC;
+        DECLARE NUM BYTE;
+        
+        CALL PRINT_NIBBLE(SHR(NUM, 4));
+        CALL PRINT_NIBBLE(NUM);
+    END PRINT_HEX8;
+
+    PRINT_HEX16: PROCEDURE(NUM) PUBLIC;
+        DECLARE NUM WORD;
+        
+        CALL PRINT_HEX8(SHR(NUM, 8));
+        CALL PRINT_HEX8(NUM AND 0FFH);
+    END PRINT_HEX16;
+
+    PRINTF: PROCEDURE(FMT, ARGS) PUBLIC;
+        DECLARE (FMT, ARGS) ADDRESS;
+
+        DECLARE CH BASED FMT BYTE;
+        DECLARE ARG BASED ARGS WORD;
+
+        DO WHILE CH <> NULL;
+            IF CH = '%' THEN DO;
+                FMT = FMT + 1;
+
+                IF CH = 'D' THEN DO;
+                    CALL PRINT_DEC(ARG);
+                END;
+                IF CH = 'H' THEN DO;
+                    CALL PRINT_HEX16(ARG);
+                END;
+                IF CH = 'N' THEN DO;
+                    CALL PRINT_HEX8(LOW(ARG));
+                END;
+                ELSE IF CH = 'S' THEN DO;
+                    CALL PRINT(ARG);
+                END;
+                ELSE IF CH = 'C' THEN DO;
+                    CALL CONOUT(LOW(ARG));
+                END;
+                ELSE IF CH = '%' THEN DO;
+                    CALL CONOUT('%');
+                    GOTO PRINTF_CHAR_DONE;
+                END;
+
+                ARGS = ARGS + 2;
+            END;
+            ELSE DO;
+                CALL CONOUT(CH);
+            END;
+
+        PRINTF_CHAR_DONE:
+
+            FMT = FMT + 1;
+        END;
+
+    END PRINTF;
+
+    READLINE: PROCEDURE(BUFFER, MAXLEN) BYTE PUBLIC;
+        DECLARE BUFFER ADDRESS;
+        DECLARE MAXLEN BYTE;
+
+        DECLARE (LEN, CH) BYTE;
+        DECLARE P ADDRESS;
+        DECLARE B BASED P BYTE;
+
+        LEN = 0;
+        CH = 0;
+
+        DO WHILE TRUE;
+            CH = CONIN;
+
+            IF CH = CR OR CH = LF THEN DO;
+                P = BUFFER + LEN;
+                B = 0;
+                CALL PRINT_CRLF;
+                RETURN LEN;
+            END;
+            ELSE IF CH = BS OR CH = DEL THEN DO;
+                IF LEN > 0 THEN DO;
+                    LEN = LEN - 1;
+                    CALL CONOUT(BS);
+                    CALL CONOUT(' ');
+                    CALL CONOUT(BS);
+                END;
+            END;
+            ELSE IF CH >= 32 AND CH <= 126 THEN DO;
+                IF LEN < (MAXLEN - 1) THEN DO;
+                    P = BUFFER + LEN;
+                    B = CH;
+                    LEN = LEN + 1;
+
+                    CALL CONOUT(CH);
+                END;
+                ELSE DO;
+                    CALL CONOUT(BEL);
+                END;
+            END;
+        END;
+
+        RETURN LEN;
+    END READLINE;
+END CONIO;

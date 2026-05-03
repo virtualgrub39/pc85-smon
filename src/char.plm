@@ -1,0 +1,21 @@
+CHAR: DO;
+
+$INCLUDE (inc/const.inc)
+
+    ISDIGIT: PROCEDURE (CHAR) BOOL PUBLIC;
+        DECLARE CHAR BYTE;
+        RETURN (CHAR >= '0') AND (CHAR <= '9');
+    END ISDIGIT;
+
+    ISLETTER: PROCEDURE (CHAR) BOOL PUBLIC; 
+        DECLARE CHAR BYTE;
+        RETURN ((CHAR >= 'A') AND (CHAR <= 'Z')) OR ((CHAR >= 'a') AND (CHAR <= 'z')); 
+    END ISLETTER;
+
+    TOUPPER: PROCEDURE (CHAR) BYTE PUBLIC;
+        DECLARE CHAR BYTE;
+        IF (CHAR >= 'a') AND (CHAR <= 'z') THEN RETURN CHAR-32;
+        ELSE RETURN CHAR;
+    END TOUPPER;
+
+END CHAR;
