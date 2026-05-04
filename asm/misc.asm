@@ -2,6 +2,7 @@ NAME MISC
 
 PUBLIC EXIT
 PUBLIC DELAY
+PUBLIC EXEC
 
 CSEG
 
@@ -27,5 +28,10 @@ DELAY_MS_L:
     JNZ DELAY_MS_L 
                 
     RET   
+
+EXEC:
+    MOV H, B
+    MOV L, C
+    PCHL
 
 END

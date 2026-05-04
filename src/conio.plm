@@ -112,9 +112,10 @@ $INCLUDE (inc/const.inc)
 
     END PRINTF;
 
-    READLINE: PROCEDURE(BUFFER, MAXLEN) BYTE PUBLIC;
+    READLINE: PROCEDURE(BUFFER, MAXLEN, ECHO) BYTE PUBLIC;
         DECLARE BUFFER ADDRESS;
         DECLARE MAXLEN BYTE;
+        DECLARE ECHO BOOL;
 
         DECLARE (LEN, CH) BYTE;
         DECLARE P ADDRESS;
@@ -135,9 +136,11 @@ $INCLUDE (inc/const.inc)
             ELSE IF CH = BS OR CH = DEL THEN DO;
                 IF LEN > 0 THEN DO;
                     LEN = LEN - 1;
-                    CALL CONOUT(BS);
-                    CALL CONOUT(' ');
-                    CALL CONOUT(BS);
+                    IF ECHO THEN DO;
+                        CALL CONOUT(BS);
+                        CALL CONOUT(' ');
+                        CALL CONOUT(BS);
+                    END;
                 END;
             END;
             ELSE IF CH >= 32 AND CH <= 126 THEN DO;
@@ -146,7 +149,7 @@ $INCLUDE (inc/const.inc)
                     B = CH;
                     LEN = LEN + 1;
 
-                    CALL CONOUT(CH);
+                    IF ECHO THEN CALL CONOUT(CH);
                 END;
                 ELSE DO;
                     CALL CONOUT(BEL);
