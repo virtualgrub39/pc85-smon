@@ -48,6 +48,7 @@ API_SRC_PLM += $(SOURCE_DIR)/main.plm
 API_SRC_PLM += $(SOURCE_DIR)/char.plm 
 API_SRC_PLM += $(SOURCE_DIR)/conio.plm
 API_SRC_PLM += $(SOURCE_DIR)/memory.plm
+API_SRC_PLM += $(SOURCE_DIR)/xmodem.plm
 
 API_SRC_ASM += $(SOURCE_DIR)/conio.asm 
 API_SRC_ASM += $(SOURCE_DIR)/misc.asm

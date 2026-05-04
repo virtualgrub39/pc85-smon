@@ -1,0 +1,85 @@
+XMODEM: DO;
+
+$INCLUDE (inc/const.inc)
+$INCLUDE (sys/misc.inc)
+$INCLUDE (inc/conio.inc)
+
+XMODEM_RECEIVE: PROCEDURE (ADDR) PUBLIC;
+        DECLARE ADDR ADDRESS;
+        DECLARE TARGET BASED ADDR BYTE;
+        DECLARE ADDR_BACKUP ADDRESS;
+        DECLARE BUFFER (128) BYTE;
+
+        DECLARE (BLKNUM, CH, LOCAL_CHECKSUM, CHECKSUM, I) BYTE;
+        DECLARE TIMEOUT WORD;
+
+        DO WHILE CONSTAT <> 0;
+            CH = CONIN;
+        END;
+
+        BLKNUM = 1;
+
+        DO WHILE TRUE;
+            CALL CONOUT(NAK);
+            
+            TIMEOUT = 0;
+            DO WHILE TIMEOUT < 50000;
+                IF CONSTAT <> 0 THEN GOTO TRANSFER_START;
+                TIMEOUT = TIMEOUT + 1;
+            END;
+        END;
+
+    TRANSFER_START:
+        DO WHILE TRUE;
+            CH = CONIN;
+
+            IF CH = EOT THEN DO;
+                CALL CONOUT(ACK);
+                CALL DELAY(0FFH); 
+                CALL PRINTLN(.('TRANSFER COMPLETE', 0));
+                RETURN;
+            END;
+            
+            ELSE IF CH = CAN THEN DO;
+                CALL PRINTLN(.('CANCELLED', 0));
+                RETURN;
+            END;
+
+            ELSE IF CH = SOH THEN DO;
+                LOCAL_CHECKSUM = 0;
+                ADDR_BACKUP = ADDR; 
+
+                IF CONIN <> BLKNUM THEN ; 
+                IF CONIN <> (NOT BLKNUM) THEN ; 
+
+                I = 0;
+                DO WHILE I < 128;
+                    BUFFER(I) = CONIN;
+                    I = I + 1;
+                END;
+                CHECKSUM = CONIN;
+
+                I = 0;
+                DO WHILE I < 128;
+                    CH = BUFFER(I);
+                    TARGET = CH;
+                    ADDR = ADDR + 1;
+                    LOCAL_CHECKSUM = LOCAL_CHECKSUM + CH;
+                    I = I + 1;
+                END;
+                
+                IF CHECKSUM = LOCAL_CHECKSUM THEN DO;
+                    CALL CONOUT(ACK);
+                    BLKNUM = BLKNUM + 1;
+                END;
+                ELSE DO;
+                    CALL CONOUT(NAK);
+                    ADDR = ADDR_BACKUP; 
+                END;
+            END;
+            ELSE DO;
+                CALL CONOUT(NAK);
+            END;
+        END;
+    END XMODEM_RECEIVE;
+END XMODEM;

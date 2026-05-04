@@ -1,6 +1,7 @@
 MEMORY: DO;
 
 $INCLUDE (inc/const.inc)
+$INCLUDE (inc/char.inc)
 
     MEMCMP: PROCEDURE(A, B, LEN) BYTE PUBLIC;
         DECLARE (A, B) ADDRESS;
@@ -73,13 +74,44 @@ $INCLUDE (inc/const.inc)
 
     ATOI: PROCEDURE (STR) WORD PUBLIC;
         DECLARE STR ADDRESS;
-        DECLARE CH BASED STR BYTE;
+        DECLARE C BASED STR BYTE;
+
         DECLARE NUM WORD;
+        DECLARE (RADIX, LEN, CH, DIGIT) BYTE;
+        
+        DECLARE END_PTR ADDRESS;
+        DECLARE END_CHAR BASED END_PTR BYTE;
+
+        LEN = STRLEN(STR);
+        IF LEN = 0 THEN RETURN 0;
+
+        END_PTR = STR + LEN - 1;
 
         NUM = 0;
+        RADIX = 10;
 
-        DO WHILE CH <> 0;
-            NUM = (NUM * 10) + (CH - '0');
+        CH = TOUPPER(END_CHAR);
+        END_PTR = END_PTR - 1;
+
+        IF CH = 'B' THEN RADIX = 2;
+        ELSE IF CH = 'O' THEN RADIX = 8;
+        ELSE IF CH = 'H' THEN RADIX = 16;
+        ELSE END_PTR = END_PTR + 1;
+
+        IF END_PTR < STR THEN RETURN 0;
+
+        DO WHILE STR <= END_PTR;
+            CH = TOUPPER(C);
+
+            IF (CH >= '0') AND (CH <= '9') THEN 
+                DIGIT = CH - '0';
+            ELSE IF (CH >= 'A') AND (CH <= 'F') THEN 
+                DIGIT = CH - 'A' + 10;
+            ELSE RETURN 0;
+
+            IF DIGIT > RADIX THEN RETURN 0;
+
+            NUM = (NUM * RADIX) + DIGIT;
             STR = STR + 1;
         END;
 

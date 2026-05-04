@@ -42,7 +42,7 @@ SYSFN MACRO FNAME
 ENDM
 
     ORG 0100H
-$INCLUDE (asm/api.asm)
+$INCLUDE (inc/api.asm)
 
 ; CODE
 START:

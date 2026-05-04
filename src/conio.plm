@@ -3,6 +3,20 @@ CONIO: DO;
 $INCLUDE (inc/syscon.inc)
 $INCLUDE (inc/const.inc)
 
+    CONINIT: PROCEDURE EXTERNAL;
+    END CONINIT;
+
+    CONOUT: PROCEDURE(CHAR) EXTERNAL;
+        DECLARE CHAR BYTE;
+    END CONOUT;
+
+    CONIN: PROCEDURE BYTE EXTERNAL;
+    END CONIN;
+
+    /* Returns the status of UART RX buffer. Returns 0 if it's empty, and 0xFF otherwise. */
+    CONSTAT: PROCEDURE BYTE EXTERNAL;
+    END CONSTAT;
+
     PRINT: PROCEDURE(PTR) PUBLIC;
         DECLARE PTR WORD;
         DECLARE CH BASED PTR BYTE;
