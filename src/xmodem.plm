@@ -1,7 +1,7 @@
 XMODEM: DO;
 
 $INCLUDE (inc/const.inc)
-$INCLUDE (sys/misc.inc)
+$INCLUDE (inc/control.inc)
 $INCLUDE (inc/conio.inc)
 
 XMODEM_RECEIVE: PROCEDURE (ADDR) PUBLIC;

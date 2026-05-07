@@ -1,5 +1,4 @@
-/* everything LITERALLY - so a clusterfuck waiting to happen 
- */
+/* everything LITERALLY - so a clusterfuck waiting to happen */
 
 /* Ascii */
 DECLARE CR LITERALLY '13';

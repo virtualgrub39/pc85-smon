@@ -5,7 +5,7 @@ $INCLUDE(sys/xmodem.inc)
 
 $INCLUDE(inc/const.inc)
 $INCLUDE(inc/conio.inc)
-$INCLUDE(inc/syscon.inc)
+$INCLUDE(inc/control.inc)
 $INCLUDE(inc/memory.inc)
 
     MONITOR_EXEC: PROCEDURE;

@@ -1,6 +1,5 @@
 CONIO: DO;
 
-$INCLUDE (inc/syscon.inc)
 $INCLUDE (inc/const.inc)
 
     CONINIT: PROCEDURE EXTERNAL;

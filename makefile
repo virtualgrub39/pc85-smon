@@ -63,7 +63,7 @@ $(OBJ_DIR)/monitor.obj: $(OBJ_DIR)/bios.obj $(API_OBJS) $(LIBS) | $(OBJ_DIR)
 	$(LN) $(subst $(space),$(comma),$(strip $^)) TO $@
 
 $(OBJ_DIR)/monitor.abs: $(OBJ_DIR)/monitor.obj
-	$(LOCATE) $< TO $@ 'CODE(0200H)' 'DATA(3E00H)' 'STACK(3FFFH)'
+	$(LOCATE) $< TO $@ 'CODE(0300H)' 'DATA(3D00H)' 'STACK(3FFFH)'
 
 $(OUT_DIR)/monitor.hex: $(OBJ_DIR)/monitor.abs | $(OUT_DIR)
 	$(OBJHEX) $< TO $@
