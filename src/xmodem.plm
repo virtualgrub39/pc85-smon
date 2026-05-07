@@ -4,82 +4,92 @@ $INCLUDE (inc/const.inc)
 $INCLUDE (inc/control.inc)
 $INCLUDE (inc/conio.inc)
 
-XMODEM_RECEIVE: PROCEDURE (ADDR) PUBLIC;
-        DECLARE ADDR ADDRESS;
-        DECLARE TARGET BASED ADDR BYTE;
-        DECLARE ADDR_BACKUP ADDRESS;
-        DECLARE BUFFER (128) BYTE;
+    DECLARE XMODEM_BUFFER (128) BYTE;
+    DECLARE XMODEM_BUF_IDX BYTE;
+    DECLARE XMODEM_BLKNUM BYTE;
+    DECLARE XMODEM_EOF_REACHED BYTE;
+    DECLARE XMODEM_NEEDS_ACK BYTE;
 
-        DECLARE (BLKNUM, CH, LOCAL_CHECKSUM, CHECKSUM, I) BYTE;
+    XMODEM_BEGIN: PROCEDURE PUBLIC;
         DECLARE TIMEOUT WORD;
-
-        DO WHILE CONSTAT <> 0;
-            CH = CONIN;
-        END;
-
-        BLKNUM = 1;
+        XMODEM_BUF_IDX = 128; 
+        XMODEM_BLKNUM = 1;
+        XMODEM_EOF_REACHED = 0;
+        XMODEM_NEEDS_ACK = 0;
+        
+        CALL PRINTLN(.('START XMODEM TRANSFER NOW', 0));
 
         DO WHILE TRUE;
             CALL CONOUT(NAK);
             
             TIMEOUT = 0;
             DO WHILE TIMEOUT < 50000;
-                IF CONSTAT <> 0 THEN GOTO TRANSFER_START;
+                IF CONSTAT <> 0 THEN RETURN;
                 TIMEOUT = TIMEOUT + 1;
             END;
         END;
+    END XMODEM_BEGIN;
 
-    TRANSFER_START:
+    XMODEM_GET_BYTE: PROCEDURE BYTE PUBLIC;
+        DECLARE (CH, CHECKSUM, LOCAL_CHECKSUM, I) BYTE;
+
+        IF XMODEM_EOF_REACHED <> 0 THEN RETURN 0;
+
+        IF XMODEM_BUF_IDX < 128 THEN DO;
+            CH = XMODEM_BUFFER(XMODEM_BUF_IDX);
+            XMODEM_BUF_IDX = XMODEM_BUF_IDX + 1;
+            RETURN CH;
+        END;
+
+        IF XMODEM_NEEDS_ACK <> 0 THEN DO;
+            CALL CONOUT(ACK);
+            XMODEM_NEEDS_ACK = 0;
+        END;
+
+    FETCH_BLOCK:
         DO WHILE TRUE;
             CH = CONIN;
-
             IF CH = EOT THEN DO;
                 CALL CONOUT(ACK);
-                CALL DELAY(0FFH); 
-                CALL PRINTLN(.('TRANSFER COMPLETE', 0));
-                RETURN;
+                XMODEM_EOF_REACHED = 1;
+                RETURN 0; 
             END;
             
-            ELSE IF CH = CAN THEN DO;
-                CALL PRINTLN(.('CANCELLED', 0));
-                RETURN;
-            END;
+            IF CH = SOH THEN DO;
+                CH = CONIN; /* BLK */
+                CH = CONIN; /* ~BLK */
 
-            ELSE IF CH = SOH THEN DO;
                 LOCAL_CHECKSUM = 0;
-                ADDR_BACKUP = ADDR; 
-
-                IF CONIN <> BLKNUM THEN ; 
-                IF CONIN <> (NOT BLKNUM) THEN ; 
-
                 I = 0;
                 DO WHILE I < 128;
-                    BUFFER(I) = CONIN;
-                    I = I + 1;
-                END;
-                CHECKSUM = CONIN;
-
-                I = 0;
-                DO WHILE I < 128;
-                    CH = BUFFER(I);
-                    TARGET = CH;
-                    ADDR = ADDR + 1;
+                    CH = CONIN;
+                    XMODEM_BUFFER(I) = CH;
                     LOCAL_CHECKSUM = LOCAL_CHECKSUM + CH;
                     I = I + 1;
                 END;
                 
+                CHECKSUM = CONIN;
+                
                 IF CHECKSUM = LOCAL_CHECKSUM THEN DO;
-                    CALL CONOUT(ACK);
-                    BLKNUM = BLKNUM + 1;
+                    XMODEM_NEEDS_ACK = 1; 
+                    XMODEM_BLKNUM = XMODEM_BLKNUM + 1;
+                    XMODEM_BUF_IDX = 1; 
+                    RETURN XMODEM_BUFFER(0); 
                 END;
                 ELSE DO;
-                    CALL CONOUT(NAK);
-                    ADDR = ADDR_BACKUP; 
+                    CALL CONOUT(NAK); 
                 END;
             END;
-            ELSE DO;
-                CALL CONOUT(NAK);
-            END;
         END;
-    END XMODEM_RECEIVE;
+    END XMODEM_GET_BYTE;
+
+    /* Drains any remaining padding and completes the EOT handshake */
+    XMODEM_FINISH: PROCEDURE PUBLIC;
+        DECLARE JUNK BYTE;
+        DO WHILE XMODEM_EOF_REACHED = 0;
+            JUNK = XMODEM_GET_BYTE;
+        END;
+        CALL PRINTLN(.('XMODEM LOAD COMPLETE', 0));
+    END XMODEM_FINISH;
+    
 END XMODEM;

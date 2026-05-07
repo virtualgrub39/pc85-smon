@@ -31,30 +31,34 @@ $INCLUDE(inc/memory.inc)
     END;
 
     MONITOR_LOAD: PROCEDURE;
-        DECLARE ADDR_STR ADDRESS;
         DECLARE ADDR ADDRESS;
+        DECLARE LEN ADDRESS;
+        DECLARE TARGET BASED ADDR BYTE;
 
-        ADDR_STR = STRTOK(NULL, ' ');
+        CALL XMODEM_BEGIN;
 
-        IF ADDR_STR = NULL THEN DO;
-            CALL PRINTLN(.('ERR. EXPECTED ADDRESS', 0));
-            RETURN;
+        DO WHILE TRUE;
+            ADDR = XMODEM_GET_BYTE;
+            ADDR = ADDR OR SHL(DOUBLE(XMODEM_GET_BYTE), 8);
+
+            LEN = XMODEM_GET_BYTE;
+            LEN = LEN OR SHL(DOUBLE(XMODEM_GET_BYTE), 8);
+
+            IF LEN = 0 THEN DO;
+                CALL XMODEM_FINISH;
+                RETURN;
+            END;
+
+            DO WHILE LEN <> 0;
+                TARGET = XMODEM_GET_BYTE;
+                ADDR = ADDR + 1;
+                LEN = LEN - 1;
+            END;
         END;
-
-        ADDR = ATOI(ADDR_STR);
-
-        IF ADDR < 2000H THEN DO;
-            CALL PRINTLN(.('ERR. PROTECTED MEMORY', 0));
-            /* or not an address, but whatever... */
-            RETURN;
-        END;
-
-        CALL PRINTLN(.('START XMODEM TRANSFER NOW...', 0));
-        CALL XMODEM_RECEIVE(ADDR);
-    END;
+    END MONITOR_LOAD;
 
     MONITOR_MAIN: PROCEDURE PUBLIC;
-        DECLARE LINE_MAX_LEN LITERALLY '32';
+        DECLARE LINE_MAX_LEN LITERALLY '16';
         DECLARE LINE (LINE_MAX_LEN) BYTE;
         DECLARE LINE_LEN BYTE;
 
