@@ -65,7 +65,7 @@ $INCLUDE(inc/memory.inc)
         DECLARE CMD ADDRESS;
 
         CALL CONINIT;
-        CALL PRINTLN(.('PC85/MONITOR (C) 2026 VGRUB39', 0));
+        CALL PRINTLN(.('PC85/OS (C) 2026 VGRUB39', 0));
         
         DO WHILE TRUE;
         MAIN_SKIP:

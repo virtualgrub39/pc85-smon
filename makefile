@@ -41,7 +41,7 @@ $(OBJ_DIR)/%.asm.obj: $(ASM_DIR)/%.asm | $(OBJ_DIR)
 #          MONITOR, API & TOOLS 
 # ==========================================
 
-COM = COM7
+COM = COM3
 
 API_SRC_PLM += $(SOURCE_DIR)/main.plm 
 
@@ -50,7 +50,6 @@ API_SRC_PLM += $(SOURCE_DIR)/conio.plm
 API_SRC_PLM += $(SOURCE_DIR)/memory.plm
 API_SRC_PLM += $(SOURCE_DIR)/xmodem.plm
 
-API_SRC_ASM += $(SOURCE_DIR)/conio.asm 
 API_SRC_ASM += $(SOURCE_DIR)/misc.asm
 
 API_OBJS = $(patsubst $(SOURCE_DIR)/%.plm, $(OBJ_DIR)/%.plm.obj, $(API_SRC_PLM)) \

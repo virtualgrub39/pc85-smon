@@ -2,18 +2,42 @@ CONIO: DO;
 
 $INCLUDE (inc/const.inc)
 
-    CONINIT: PROCEDURE EXTERNAL;
+    DECLARE UART_DATA LITERALLY '00H';
+    DECLARE UART_CTRL LITERALLY '01H';
+
+    CONINIT: PROCEDURE PUBLIC;
+        /* Reset the 8251 */
+        OUTPUT(UART_CTRL) = 00H;
+        OUTPUT(UART_CTRL) = 00H;
+        OUTPUT(UART_CTRL) = 00H;
+        OUTPUT(UART_CTRL) = 40H;
+
+        /* Mode: 1 stop, no parity, 8-bit character, 16x baud */
+        OUTPUT(UART_CTRL) = 01001110B;
+        /* Command: error reset, RTS, RX enable, TX enable */
+        OUTPUT(UART_CTRL) = 00010101B;
     END CONINIT;
 
-    CONOUT: PROCEDURE(CHAR) EXTERNAL;
+    CONOUT: PROCEDURE(CHAR) PUBLIC;
         DECLARE CHAR BYTE;
+        
+        DO WHILE (INPUT(UART_CTRL) AND 01H) = 0; /* wait for TXRDY */
+        END;
+
+        OUTPUT(UART_DATA) = CHAR;
     END CONOUT;
 
-    CONIN: PROCEDURE BYTE EXTERNAL;
+    CONIN: PROCEDURE BYTE PUBLIC;
+        DO WHILE (INPUT(UART_CTRL) AND 02H) = 0; /* wait for RXRDY */
+        END;
+
+        RETURN INPUT(UART_DATA);
     END CONIN;
 
     /* Returns the status of UART RX buffer. Returns 0 if it's empty, and 0xFF otherwise. */
-    CONSTAT: PROCEDURE BYTE EXTERNAL;
+    CONSTAT: PROCEDURE BYTE PUBLIC;
+        IF (INPUT(UART_CTRL) AND 02H) <> 0 THEN RETURN 0FFH;
+        RETURN 0;
     END CONSTAT;
 
     PRINT: PROCEDURE(PTR) PUBLIC;
